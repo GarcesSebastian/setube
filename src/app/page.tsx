@@ -1,6 +1,7 @@
 "use client"
 
 import { v4 as uuidv4 } from "uuid"
+import Image from "next/image"
 import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/Card"
 import { Button } from "@/components/Button"
@@ -21,6 +22,7 @@ import {
   ListMusic,
   Search,
   Music,
+  Eye,
 } from "lucide-react"
 
 interface URL {
@@ -28,7 +30,22 @@ interface URL {
   id: string
 }
 
+interface Playlist {
+  id: string,
+  thumbnail: {
+    url: string,
+    width: number,
+    height: number
+  },
+  url: string,
+  title: string,
+  description: string,
+  total_items: number,
+  views: number,
+}
+
 interface PlaylistInfo {
+  info: Playlist,
   total: number
   urls: string[]
 }
@@ -286,6 +303,7 @@ export default function YouTubeConverter() {
           convertedFiles={convertedFiles}
           onClose={handleCloseProgress}
           isCompleted={isConversionCompleted}
+          playlistInfo={playlistInfo?.info}
         />
 
         {/* Header */}
@@ -411,26 +429,47 @@ export default function YouTubeConverter() {
                     {playlistInfo && (
                       <div className="animate-in fade-in slide-in-from-bottom duration-500">
                         <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-3 sm:p-4 rounded-xl border border-purple-100">
-                          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                          <div className="flex flex-col items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                             <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
-                              <ListMusic className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                              <Image
+                                src={playlistInfo.info.thumbnail.url}
+                                width={playlistInfo.info.thumbnail.width}
+                                height={playlistInfo.info.thumbnail.height}
+                                alt="Playlist thumbnail"
+                                className="rounded-lg"
+                              />
                             </div>
-                            <div>
+                            <div className="text-center">
                               <p className="text-xs sm:text-sm font-medium text-slate-700">Playlist Detectada</p>
-                              <p className="text-xs text-slate-600">Lista para convertir</p>
+                              <p className="text-sm text-slate-600 font-bold">{playlistInfo.info.title}</p>
+                              <p className="text-xs text-slate-500 mt-1">{playlistInfo.info.description}</p>
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between bg-white/50 rounded-lg p-2 sm:p-3">
-                            <div className="flex items-center gap-1 sm:gap-2">
-                              <Music className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
-                              <span className="text-xs sm:text-sm font-medium text-slate-700">Total de videos:</span>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between bg-white/50 rounded-lg p-2 sm:p-3">
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <Music className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
+                                <span className="text-xs sm:text-sm font-medium text-slate-700">Total de videos:</span>
+                              </div>
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <span className="text-base sm:text-lg font-bold text-purple-600">
+                                  {playlistInfo.total}
+                                </span>
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1 sm:gap-2">
-                              <span className="text-base sm:text-lg font-bold text-purple-600">
-                                {playlistInfo.total}
-                              </span>
-                              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-purple-500 rounded-full animate-pulse"></div>
+
+                            <div className="flex items-center justify-between bg-white/50 rounded-lg p-2 sm:p-3">
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
+                                <span className="text-xs sm:text-sm font-medium text-slate-700">Reproducciones:</span>
+                              </div>
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <span className="text-base sm:text-lg font-bold text-purple-600">
+                                  {new Intl.NumberFormat('es-ES').format(playlistInfo.info.views)}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>

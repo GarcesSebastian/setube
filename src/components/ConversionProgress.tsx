@@ -1,6 +1,7 @@
 "use client"
 
 import { CheckCircle, Music, Loader2, Download, X } from "lucide-react"
+import Image from "next/image"
 import { Card, CardContent } from "@/components/Card"
 import { Button } from "@/components/Button"
 
@@ -15,6 +16,7 @@ interface ConversionProgressProps {
   convertedFiles: ConvertedFile[]
   onClose: () => void
   isCompleted: boolean
+  playlistInfo?: any
 }
 
 export function ConversionProgress({
@@ -23,6 +25,7 @@ export function ConversionProgress({
   convertedFiles,
   onClose,
   isCompleted,
+  playlistInfo,
 }: ConversionProgressProps) {
   if (!isVisible) return null
 
@@ -39,22 +42,40 @@ export function ConversionProgress({
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                    {isCompleted ? (
-                      <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
-                    ) : (
-                      <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
-                    )}
-                  </div>
+                  {playlistInfo?.thumbnail && (
+                      <Image
+                        src={playlistInfo.thumbnail.url}
+                        width={playlistInfo.thumbnail.width}
+                        height={playlistInfo.thumbnail.height}
+                        alt="Playlist thumbnail"
+                        className="size-8 sm:size-10 rounded-lg object-cover"
+                      />
+                  )}
+                  
+                  {!playlistInfo?.thumbnail && (
+                    <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg backdrop-blur-sm">
+                      {isCompleted ? (
+                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                      ) : (
+                        <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                      )}
+                    </div>
+                  )}
+
                   <div>
                     <h2 className="text-lg sm:text-xl font-bold">
-                      {isCompleted ? "Conversión Completada" : "Convirtiendo Playlist"}
+                      {isCompleted ? "Conversión Completada" : playlistInfo?.title || "Convirtiendo Playlist"}
                     </h2>
-                    <p className="text-white/80 text-xs sm:text-sm">
-                      {isCompleted
-                        ? "Todos los archivos han sido procesados"
-                        : `${convertedFiles.length} de ${totalFiles} archivos convertidos`}
-                    </p>
+                    <div className="space-y-1">
+                      {playlistInfo?.description && (
+                        <p className="text-white/80 text-xs sm:text-sm">{playlistInfo.description}</p>
+                      )}
+                      <p className="text-white/80 text-xs sm:text-sm">
+                        {isCompleted
+                          ? "Todos los archivos han sido procesados"
+                          : `${convertedFiles.length} de ${totalFiles} archivos convertidos`}
+                      </p>
+                    </div>
                   </div>
                 </div>
                 <Button onClick={onClose} variant="ghost" size="sm" className="text-white hover:bg-white/20">
