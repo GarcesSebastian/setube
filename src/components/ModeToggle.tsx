@@ -21,22 +21,24 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
 
       <button
         onClick={() => onChange("urls")}
-        className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+        className={`relative z-10 flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
           mode === "urls" ? "text-slate-700" : "text-gray-500 hover:text-gray-700"
         }`}
       >
-        <List className="w-4 h-4" />
-        URLs Individuales
+        <List className="w-3 h-3 sm:w-4 sm:h-4" />
+        <span className="hidden xs:inline">URLs Individuales</span>
+        <span className="xs:hidden">URLs</span>
       </button>
 
       <button
         onClick={() => onChange("playlist")}
-        className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+        className={`relative z-10 flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
           mode === "playlist" ? "text-slate-700" : "text-gray-500 hover:text-gray-700"
         }`}
       >
-        <ListMusic className="w-4 h-4" />
-        Playlist Completa
+        <ListMusic className="w-3 h-3 sm:w-4 sm:h-4" />
+        <span className="hidden xs:inline">Playlist Completa</span>
+        <span className="xs:hidden">Playlist</span>
       </button>
     </div>
   )

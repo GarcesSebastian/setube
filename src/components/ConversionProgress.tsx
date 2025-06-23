@@ -30,23 +30,27 @@ export function ConversionProgress({
   const remaining = totalFiles - convertedFiles.length
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-300">
+      <Card className="w-full max-w-2xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
         <CardContent className="p-0">
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-white relative overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 sm:p-6 text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 animate-pulse"></div>
             <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                    {isCompleted ? <CheckCircle className="w-6 h-6" /> : <Loader2 className="w-6 h-6 animate-spin" />}
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    {isCompleted ? (
+                      <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                    ) : (
+                      <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                    )}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">
+                    <h2 className="text-lg sm:text-xl font-bold">
                       {isCompleted ? "Conversión Completada" : "Convirtiendo Playlist"}
                     </h2>
-                    <p className="text-white/80 text-sm">
+                    <p className="text-white/80 text-xs sm:text-sm">
                       {isCompleted
                         ? "Todos los archivos han sido procesados"
                         : `${convertedFiles.length} de ${totalFiles} archivos convertidos`}
@@ -54,17 +58,17 @@ export function ConversionProgress({
                   </div>
                 </div>
                 <Button onClick={onClose} variant="ghost" size="sm" className="text-white hover:bg-white/20">
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </div>
 
               {/* Progress Bar */}
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span>Progreso</span>
                   <span>{Math.round(progress)}%</span>
                 </div>
-                <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-white/20 rounded-full h-2 sm:h-3 overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-white to-white/80 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
                     style={{ width: `${progress}%` }}
@@ -75,17 +79,17 @@ export function ConversionProgress({
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mt-4">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-3 sm:mt-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold">{convertedFiles.length}</div>
+                  <div className="text-lg sm:text-2xl font-bold">{convertedFiles.length}</div>
                   <div className="text-white/80 text-xs">Convertidos</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold">{remaining}</div>
+                  <div className="text-lg sm:text-2xl font-bold">{remaining}</div>
                   <div className="text-white/80 text-xs">Restantes</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold">{totalFiles}</div>
+                  <div className="text-lg sm:text-2xl font-bold">{totalFiles}</div>
                   <div className="text-white/80 text-xs">Total</div>
                 </div>
               </div>
@@ -93,12 +97,12 @@ export function ConversionProgress({
           </div>
 
           {/* Files List */}
-          <div className="p-6 max-h-96 overflow-y-auto">
-            <div className="space-y-3">
+          <div className="p-3 sm:p-6 max-h-64 sm:max-h-96 overflow-y-auto">
+            <div className="space-y-2 sm:space-y-3">
               {convertedFiles.length === 0 && !isCompleted ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                  <p>Iniciando conversión...</p>
+                <div className="text-center py-6 sm:py-8 text-gray-500">
+                  <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin mx-auto mb-2" />
+                  <p className="text-sm">Iniciando conversión...</p>
                 </div>
               ) : (
                 <>
@@ -106,20 +110,20 @@ export function ConversionProgress({
                   {convertedFiles.map((file, index) => (
                     <div
                       key={`${file.filename}-${file.timestamp}`}
-                      className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg animate-in slide-in-from-left duration-500"
+                      className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50 border border-green-200 rounded-lg animate-in slide-in-from-left duration-500"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg flex-shrink-0">
+                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-green-800 truncate">{file.filename}</p>
+                        <p className="text-xs sm:text-sm font-medium text-green-800 truncate">{file.filename}</p>
                         <p className="text-xs text-green-600">
                           Convertido • {new Date(file.timestamp).toLocaleTimeString()}
                         </p>
                       </div>
-                      <div className="p-1 bg-green-200 rounded-full">
-                        <Music className="w-3 h-3 text-green-700" />
+                      <div className="p-1 bg-green-200 rounded-full flex-shrink-0">
+                        <Music className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-700" />
                       </div>
                     </div>
                   ))}
@@ -130,13 +134,13 @@ export function ConversionProgress({
                     Array.from({ length: Math.min(3, remaining) }).map((_, index) => (
                       <div
                         key={`pending-${index}`}
-                        className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg opacity-50"
+                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 border border-gray-200 rounded-lg opacity-50"
                       >
-                        <div className="p-2 bg-gray-100 rounded-lg">
-                          <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                        <div className="p-1.5 sm:p-2 bg-gray-100 rounded-lg flex-shrink-0">
+                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 animate-spin" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm text-gray-600">Esperando conversión...</p>
+                          <p className="text-xs sm:text-sm text-gray-600">Esperando conversión...</p>
                           <p className="text-xs text-gray-500">En cola</p>
                         </div>
                       </div>
@@ -144,7 +148,7 @@ export function ConversionProgress({
 
                   {remaining > 3 && (
                     <div className="text-center py-2">
-                      <p className="text-sm text-gray-500">y {remaining - 3} archivos más...</p>
+                      <p className="text-xs sm:text-sm text-gray-500">y {remaining - 3} archivos más...</p>
                     </div>
                   )}
                 </>
@@ -154,10 +158,10 @@ export function ConversionProgress({
 
           {/* Footer */}
           {isCompleted && (
-            <div className="p-6 bg-gray-50 border-t">
+            <div className="p-3 sm:p-6 bg-gray-50 border-t">
               <div className="flex items-center justify-center gap-2 text-green-600">
-                <Download className="w-5 h-5" />
-                <span className="font-medium">¡Descarga iniciada automáticamente!</span>
+                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="font-medium text-xs sm:text-sm">¡Descarga iniciada automáticamente!</span>
               </div>
             </div>
           )}
