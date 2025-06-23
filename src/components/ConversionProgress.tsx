@@ -4,6 +4,7 @@ import { CheckCircle, Music, Loader2, Download, X } from "lucide-react"
 import Image from "next/image"
 import { Card, CardContent } from "@/components/Card"
 import { Button } from "@/components/Button"
+import { Playlist } from "@/app/page"
 
 interface ConvertedFile {
   filename: string
@@ -16,7 +17,7 @@ interface ConversionProgressProps {
   convertedFiles: ConvertedFile[]
   onClose: () => void
   isCompleted: boolean
-  playlistInfo?: any
+  playlistInfo?: Playlist
 }
 
 export function ConversionProgress({
@@ -36,7 +37,6 @@ export function ConversionProgress({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-300">
       <Card className="w-full max-w-2xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
         <CardContent className="p-0">
-          {/* Header */}
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 sm:p-6 text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 animate-pulse"></div>
             <div className="relative z-10">
@@ -83,7 +83,6 @@ export function ConversionProgress({
                 </Button>
               </div>
 
-              {/* Progress Bar */}
               <div className="space-y-2">
                 <div className="flex justify-between text-xs sm:text-sm">
                   <span>Progreso</span>
@@ -99,7 +98,6 @@ export function ConversionProgress({
                 </div>
               </div>
 
-              {/* Stats */}
               <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-3 sm:mt-4">
                 <div className="text-center">
                   <div className="text-lg sm:text-2xl font-bold">{convertedFiles.length}</div>
@@ -117,7 +115,6 @@ export function ConversionProgress({
             </div>
           </div>
 
-          {/* Files List */}
           <div className="p-3 sm:p-6 max-h-64 sm:max-h-96 overflow-y-auto">
             <div className="space-y-2 sm:space-y-3">
               {convertedFiles.length === 0 && !isCompleted ? (
@@ -127,7 +124,6 @@ export function ConversionProgress({
                 </div>
               ) : (
                 <>
-                  {/* Converted Files */}
                   {convertedFiles.map((file, index) => (
                     <div
                       key={`${file.filename}-${file.timestamp}`}
@@ -149,7 +145,6 @@ export function ConversionProgress({
                     </div>
                   ))}
 
-                  {/* Remaining Files (only show a few) */}
                   {!isCompleted &&
                     remaining > 0 &&
                     Array.from({ length: Math.min(3, remaining) }).map((_, index) => (
@@ -177,7 +172,6 @@ export function ConversionProgress({
             </div>
           </div>
 
-          {/* Footer */}
           {isCompleted && (
             <div className="p-3 sm:p-6 bg-gray-50 border-t">
               <div className="flex items-center justify-center gap-2 text-green-600">

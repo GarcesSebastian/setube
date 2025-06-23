@@ -19,7 +19,6 @@ import {
   CheckCircle,
   Info,
   Sparkles,
-  ListMusic,
   Search,
   Music,
   Eye,
@@ -30,7 +29,7 @@ interface URL {
   id: string
 }
 
-interface Playlist {
+export interface Playlist {
   id: string,
   thumbnail: {
     url: string,
@@ -44,7 +43,7 @@ interface Playlist {
   views: number,
 }
 
-interface PlaylistInfo {
+export interface PlaylistInfo {
   info: Playlist,
   total: number
   urls: string[]
@@ -74,7 +73,6 @@ export default function YouTubeConverter() {
   const [convertedCount, setConvertedCount] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
-  // Progress tracking states
   const [showProgress, setShowProgress] = useState(false)
   const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([])
   const [totalFilesToConvert, setTotalFilesToConvert] = useState(0)
@@ -82,7 +80,6 @@ export default function YouTubeConverter() {
 
   const eventSourceRef = useRef<EventSource | null>(null)
 
-  // Debounce para obtener info de playlist
   useEffect(() => {
     if (mode === "playlist" && playlistUrl.trim()) {
       const timer = setTimeout(() => {
@@ -95,7 +92,6 @@ export default function YouTubeConverter() {
     }
   }, [playlistUrl, mode])
 
-  // Cleanup EventSource on unmount
   useEffect(() => {
     return () => {
       if (eventSourceRef.current) {
@@ -121,7 +117,7 @@ export default function YouTubeConverter() {
 
   const setupEventSource = () => {
     try {
-      closeEventSource() // Close any existing connection
+      closeEventSource()
 
       const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/events`)
       eventSourceRef.current = eventSource
@@ -147,7 +143,6 @@ export default function YouTubeConverter() {
 
       eventSource.onerror = (error) => {
         console.error("Error en EventSource:", error)
-        // Don't show error immediately, might be temporary
         setTimeout(() => {
           if (eventSource.readyState === EventSource.CLOSED) {
             showError("Se perdió la conexión con el servidor durante la conversión")
@@ -209,7 +204,7 @@ export default function YouTubeConverter() {
         urlsToConvert = playlistInfo.urls
         setTotalFilesToConvert(playlistInfo.total)
         setShowProgress(true)
-        setupEventSource() // Setup SSE for playlist conversion
+        setupEventSource()
       } else {
         const validUrls = urls.filter((url) => url.url.trim()).map((url) => url.url)
         if (validUrls.length === 0) {
@@ -251,7 +246,6 @@ export default function YouTubeConverter() {
       setConvertedCount(urlsToConvert.length)
       setIsConversionCompleted(true)
 
-      // Close SSE connection after successful conversion
       setTimeout(() => {
         closeEventSource()
       }, 2000)
@@ -293,10 +287,8 @@ export default function YouTubeConverter() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-3xl">
-        {/* Error Toast */}
         {error && <ErrorToast message={error} onClose={() => setError(null)} />}
 
-        {/* Conversion Progress Modal */}
         <ConversionProgress
           isVisible={showProgress}
           totalFiles={totalFilesToConvert}
@@ -306,7 +298,6 @@ export default function YouTubeConverter() {
           playlistInfo={playlistInfo?.info}
         />
 
-        {/* Header */}
         <div className="text-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-top duration-1000">
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div className="relative">
@@ -324,10 +315,8 @@ export default function YouTubeConverter() {
           <p className="text-slate-600 text-sm sm:text-lg px-4">Convierte videos y playlists a audio de alta calidad</p>
         </div>
 
-        {/* Main Converter */}
         <Card className="shadow-xl border-0 mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom duration-1000 delay-200">
           <CardContent className="space-y-4 sm:space-y-6">
-            {/* Mode Toggle */}
             <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-gradient-to-r from-slate-600 to-slate-500 rounded-full"></div>
@@ -336,7 +325,6 @@ export default function YouTubeConverter() {
               <ModeToggle mode={mode} onChange={setMode} />
             </div>
 
-            {/* Format Selection */}
             <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-gradient-to-r from-slate-600 to-slate-500 rounded-full"></div>
@@ -345,7 +333,6 @@ export default function YouTubeConverter() {
               <FormatSelector value={format} onChange={setFormat} />
             </div>
 
-            {/* Content based on mode */}
             <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-gradient-to-r from-slate-600 to-slate-500 rounded-full"></div>
@@ -354,7 +341,6 @@ export default function YouTubeConverter() {
                 </span>
               </div>
 
-              {/* Animated content transition */}
               <div className="relative overflow-hidden">
                 {mode === "urls" ? (
                   <div className="animate-in fade-in slide-in-from-right duration-500 space-y-3 sm:space-y-4">
@@ -425,7 +411,6 @@ export default function YouTubeConverter() {
                       )}
                     </div>
 
-                    {/* Playlist Info */}
                     {playlistInfo && (
                       <div className="animate-in fade-in slide-in-from-bottom duration-500">
                         <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-3 sm:p-4 rounded-xl border border-purple-100">
@@ -487,7 +472,6 @@ export default function YouTubeConverter() {
               </div>
             </div>
 
-            {/* Convert Button */}
             <div className="pt-2">
               <Button
                 onClick={handleConvert}
@@ -526,7 +510,6 @@ export default function YouTubeConverter() {
           </CardContent>
         </Card>
 
-        {/* Instructions */}
         <Card className="border-0 shadow-lg animate-in fade-in slide-in-from-bottom duration-1000 delay-400">
           <CardContent className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2 mb-3 sm:mb-4">
@@ -578,7 +561,6 @@ export default function YouTubeConverter() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <div className="text-center mt-6 sm:mt-8 text-slate-500 text-xs animate-in fade-in duration-1000 delay-600 px-4">
           <p>Respeta los derechos de autor • Usa solo contenido autorizado</p>
         </div>
