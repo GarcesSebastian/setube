@@ -47,7 +47,7 @@ export function ConversionProgress({
                         src={playlistInfo.thumbnail.url}
                         width={playlistInfo.thumbnail.width}
                         height={playlistInfo.thumbnail.height}
-                        alt="Playlist thumbnail"
+                        alt="Miniatura optimizada para SEO del convertidor de YouTube a MP3 con Setube. Convierte playlists de YouTube a audio fácilmente."
                         className="size-8 sm:size-10 rounded-lg object-cover"
                       />
                   )}
@@ -55,9 +55,9 @@ export function ConversionProgress({
                   {!playlistInfo?.thumbnail && (
                     <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg backdrop-blur-sm">
                       {isCompleted ? (
-                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" role="img" aria-label="Conversión completada con Setube, el mejor convertidor de YouTube a audio MP3" />
                       ) : (
-                        <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                        <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" role="img" aria-label="Convirtiendo audio de YouTube a MP3 gratis con Setube" />
                       )}
                     </div>
                   )}
@@ -131,7 +131,7 @@ export function ConversionProgress({
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
                       <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg flex-shrink-0">
-                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" role="img" aria-label="Archivo convertido exitosamente a MP3 desde YouTube con Setube" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs sm:text-sm font-medium text-green-800 truncate">{file.filename}</p>
@@ -140,7 +140,7 @@ export function ConversionProgress({
                         </p>
                       </div>
                       <div className="p-1 bg-green-200 rounded-full flex-shrink-0">
-                        <Music className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-700" />
+                        <Music className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-700" role="img" aria-label="Audio MP3 extraído de YouTube usando Setube" />
                       </div>
                     </div>
                   ))}
@@ -153,7 +153,7 @@ export function ConversionProgress({
                         className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 border border-gray-200 rounded-lg opacity-50"
                       >
                         <div className="p-1.5 sm:p-2 bg-gray-100 rounded-lg flex-shrink-0">
-                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 animate-spin" />
+                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 animate-spin" role="img" aria-label="Esperando para convertir video de YouTube a audio con Setube" />
                         </div>
                         <div className="flex-1">
                           <p className="text-xs sm:text-sm text-gray-600">Esperando conversión...</p>
@@ -175,7 +175,7 @@ export function ConversionProgress({
           {isCompleted && (
             <div className="p-3 sm:p-6 bg-gray-50 border-t">
               <div className="flex items-center justify-center gap-2 text-green-600">
-                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Download className="w-4 h-4 sm:w-5 sm:h-5" role="img" aria-label="Descarga de audio MP3 desde YouTube completada con Setube" />
                 <span className="font-medium text-xs sm:text-sm">¡Descarga iniciada automáticamente!</span>
               </div>
             </div>

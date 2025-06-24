@@ -86,7 +86,6 @@ export function FormatSelector({ value, onChange }: FormatSelectorProps) {
         ))}
       </div>
 
-      {/* Compatibility indicators */}
       <div className="bg-gray-50 rounded-xl p-3 sm:p-4 space-y-3">
         <div className="grid grid-cols-3 gap-2 sm:gap-4 text-xs">
           <div className="text-center">

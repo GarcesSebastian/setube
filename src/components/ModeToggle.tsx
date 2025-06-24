@@ -12,7 +12,6 @@ interface ModeToggleProps {
 export function ModeToggle({ mode, onChange }: ModeToggleProps) {
   return (
     <div className="flex bg-gray-100 rounded-xl p-1 relative">
-      {/* Background slider */}
       <div
         className={`absolute top-1 bottom-1 w-1/2 bg-white rounded-lg shadow-sm transition-all duration-300 ease-out ${
           mode === "playlist" ? "translate-x-full" : "translate-x-0"

@@ -1,5 +1,5 @@
 module.exports = {
-  siteUrl: 'https://setube.com',
+  siteUrl: 'https://setube.garcessebastian.com',
   generateRobotsTxt: true,
   changefreq: 'daily',
   priority: 1.0,
@@ -23,8 +23,8 @@ module.exports = {
         disallow: ['/admin/', '/api/']
       }
     ],
-    sitemap: 'https://setube.com/sitemap.xml',
-    host: 'https://setube.com'
+    sitemap: 'https://setube.garcessebastian.com/sitemap.xml',
+    host: 'https://setube.garcessebastian.com'
   },
   exclude: [
     '/admin/**',

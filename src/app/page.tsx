@@ -420,7 +420,7 @@ export default function YouTubeConverter() {
                                 src={playlistInfo.info.thumbnail.url}
                                 width={playlistInfo.info.thumbnail.width}
                                 height={playlistInfo.info.thumbnail.height}
-                                alt="Playlist thumbnail"
+                                alt="Miniatura de playlist de YouTube para convertir a MP3 con Setube, el mejor convertidor de YouTube a audio"
                                 className="rounded-lg"
                               />
                             </div>
