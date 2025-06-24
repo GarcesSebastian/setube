@@ -58,12 +58,23 @@ type Format = "mp3" | "wav" | "m4a"
 type ConversionMode = "urls" | "playlist"
 
 export default function YouTubeConverter() {
-  const [urls, setUrls] = useState<URL[]>([
-    {
-      url: "https://www.youtube.com/watch?v=1G4isv_Fylg&list=RDd_HlPboLRL8&index=4",
-      id: uuidv4(),
-    },
-  ])
+  const handleClearUrls = () => {
+    setUrls((prevUrls) => prevUrls.length > 1 ? [prevUrls[0]] : prevUrls)
+  }
+
+  const [urls, setUrls] = useState<URL[]>([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("setube_urls");
+      if (saved) {
+        const parsed: URL[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setUrls(parsed);
+        }
+      }
+    } catch {}
+  }, []);
   const [playlistUrl, setPlaylistUrl] = useState("")
   const [playlistInfo, setPlaylistInfo] = useState<PlaylistInfo | null>(null)
   const [format, setFormat] = useState<Format>("mp3")
@@ -272,6 +283,14 @@ export default function YouTubeConverter() {
     setUrls((prevUrls) => prevUrls.map((url) => (url.id === id ? { ...url, url: value } : url)))
   }
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("setube_urls", JSON.stringify(urls));
+      } catch {}
+    }
+  }, [urls]);
+
   const handleCloseProgress = () => {
     setShowProgress(false)
     closeEventSource()
@@ -341,14 +360,31 @@ export default function YouTubeConverter() {
                 </span>
               </div>
 
-              <div className="relative overflow-hidden">
+              <div className="relative p-2 overflow-hidden">
                 {mode === "urls" ? (
                   <div className="animate-in fade-in slide-in-from-right duration-500 space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-end">
-                      <Button onClick={addNewUrl} variant="ghost" size="sm">
-                        <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        onClick={addNewUrl}
+                        variant="ghost"
+                        size="sm"
+                        aria-label="Agregar nueva URL"
+                        title="Agregar nueva URL"
+                      >
+                        <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span className="hidden xs:inline">Agregar</span>
-                        <span className="xs:hidden">+</span>
+                      </Button>
+                      <Button
+                        onClick={handleClearUrls}
+                        variant="ghost"
+                        size="sm"
+                        aria-label="Borrar todas las URLs excepto la primera"
+                        title="Borrar todas las URLs excepto la primera"
+                        disabled={urls.length <= 1}
+                        className="text-red-500 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">Borrar</span>
                       </Button>
                     </div>
 
@@ -379,6 +415,7 @@ export default function YouTubeConverter() {
                               className="px-2 sm:px-3"
                             >
                               <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="hidden xs:inline">Borrar</span>
                             </Button>
                           )}
                         </div>
