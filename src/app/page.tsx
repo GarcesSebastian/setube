@@ -177,7 +177,7 @@ export default function YouTubeConverter() {
     setPlaylistInfo(null)
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/playlist-to-audio`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/playlist`, {
         method: "POST",
         body: JSON.stringify({ url: playlistUrl }),
         headers: {
@@ -225,7 +225,7 @@ export default function YouTubeConverter() {
         setTotalFilesToConvert(validUrls.length)
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/convert-to-audio`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/convert`, {
         method: "POST",
         body: JSON.stringify({ urls: urlsToConvert, format }),
         headers: {
@@ -245,10 +245,22 @@ export default function YouTubeConverter() {
       const a = document.createElement("a")
       a.href = url
 
-      const filename =
-        response.headers.get("Content-Disposition")?.split("filename=")[1]?.replace(/"/g, "") || defaultFilename
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = defaultFilename;
 
-      a.download = filename
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = decodeURIComponent(filenameMatch[1]);
+        } else {
+          const filenameMatchLegacy = contentDisposition.match(/filename="([^"]+)"/i);
+          if (filenameMatchLegacy && filenameMatchLegacy[1]) {
+            filename = filenameMatchLegacy[1];
+          }
+        }
+      }
+      
+      a.download = filename;
       document.body.appendChild(a)
       a.click()
       a.remove()
