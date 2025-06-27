@@ -54,8 +54,9 @@ interface ConvertedFile {
   timestamp: number
 }
 
-type Format = "mp3" | "wav" | "m4a"
+type Format = "mp3" | "wav" | "m4a" | "mp4"
 type ConversionMode = "urls" | "playlist"
+type ConversionType = "audio" | "video"
 
 export default function YouTubeConverter() {
   const handleClearUrls = () => {
@@ -79,6 +80,7 @@ export default function YouTubeConverter() {
   const [playlistInfo, setPlaylistInfo] = useState<PlaylistInfo | null>(null)
   const [format, setFormat] = useState<Format>("mp3")
   const [mode, setMode] = useState<ConversionMode>("urls")
+  const [conversionType, setConversionType] = useState<ConversionType>("audio")
   const [isConverting, setIsConverting] = useState(false)
   const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(false)
   const [convertedCount, setConvertedCount] = useState(0)
@@ -177,7 +179,8 @@ export default function YouTubeConverter() {
     setPlaylistInfo(null)
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/playlist`, {
+      const endpoint = conversionType === "audio" ? "audio" : "video"
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}/playlist`, {
         method: "POST",
         body: JSON.stringify({ url: playlistUrl }),
         headers: {
@@ -225,7 +228,8 @@ export default function YouTubeConverter() {
         setTotalFilesToConvert(validUrls.length)
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/convert`, {
+      const endpoint = conversionType === "audio" ? "audio" : "video"
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}/convert`, {
         method: "POST",
         body: JSON.stringify({ urls: urlsToConvert, format }),
         headers: {
@@ -341,9 +345,9 @@ export default function YouTubeConverter() {
             </div>
           </div>
           <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-1 sm:mb-2">
-            YouTube to Audio
+            Setube
           </h1>
-          <p className="text-slate-600 text-sm sm:text-lg px-4">Convierte videos y playlists a audio de alta calidad</p>
+          <p className="text-slate-600 text-sm sm:text-lg px-4">Convierte videos y playlists a audio o video de alta calidad</p>
         </div>
 
         <Card className="shadow-xl border-0 mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom duration-1000 delay-200">
@@ -351,7 +355,7 @@ export default function YouTubeConverter() {
             <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-gradient-to-r from-slate-600 to-slate-500 rounded-full"></div>
-                <span className="text-xs sm:text-sm font-semibold text-slate-700">Tipo de conversión</span>
+                <span className="text-xs sm:text-sm font-semibold text-slate-700">Modo de descarga</span>
               </div>
               <ModeToggle mode={mode} onChange={setMode} />
             </div>
@@ -359,9 +363,46 @@ export default function YouTubeConverter() {
             <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-gradient-to-r from-slate-600 to-slate-500 rounded-full"></div>
+                <span className="text-xs sm:text-sm font-semibold text-slate-700">Tipo de conversión</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
+                <Button
+                  onClick={() => {
+                    setConversionType("audio")
+                    setFormat("mp3")
+                  }}
+                  variant={conversionType === "audio" ? "primary" : "ghost"}
+                  className="w-full"
+                >
+                  Audio
+                </Button>
+                <Button
+                  onClick={() => {
+                    setConversionType("video")
+                    setFormat("mp4")
+                  }}
+                  variant={conversionType === "video" ? "primary" : "ghost"}
+                  className="w-full"
+                >
+                  Video
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-gradient-to-r from-slate-600 to-slate-500 rounded-full"></div>
                 <span className="text-xs sm:text-sm font-semibold text-slate-700">Formato de salida</span>
               </div>
-              <FormatSelector value={format} onChange={setFormat} />
+              <FormatSelector
+                value={format}
+                onChange={(newFormat) => setFormat(newFormat as Format)}
+                options={
+                  conversionType === "audio"
+                    ? ["mp3", "wav", "m4a"]
+                    : ["mp4"]
+                }
+              />
             </div>
 
             <div className="space-y-3 sm:space-y-4">
