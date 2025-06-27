@@ -24,9 +24,26 @@ import {
   Eye,
 } from "lucide-react"
 
+interface VideoThumbnail {
+  url: string
+  width: number
+  height: number
+}
+
+interface VideoInfo {
+  url: string
+  title: string
+  description: string
+  thumbnail: VideoThumbnail
+  qualities: string[]
+}
+
 interface URL {
   url: string
   id: string
+  info?: VideoInfo
+  isLoading?: boolean
+  isValid?: boolean
 }
 
 export interface Playlist {
@@ -61,6 +78,7 @@ type ConversionType = "audio" | "video"
 export default function YouTubeConverter() {
   const handleClearUrls = () => {
     setUrls((prevUrls) => prevUrls.length > 1 ? [prevUrls[0]] : prevUrls)
+    saveUrlsToStorage([...urls])
   }
 
   const [urls, setUrls] = useState<URL[]>([]);
@@ -71,10 +89,34 @@ export default function YouTubeConverter() {
       if (saved) {
         const parsed: URL[] = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setUrls(parsed);
+
+          const urlsWithoutInfo = parsed.map(url => ({
+            id: url.id,
+            url: url.url,
+            isValid: false,
+            isLoading: isValidUrl(url.url)
+          }));
+          
+          setUrls(urlsWithoutInfo);
+          
+          urlsWithoutInfo.forEach((url, index) => {
+            if (isValidUrl(url.url)) {
+              setTimeout(() => {
+                fetchVideoInfo(url.id, url.url);
+              }, index * 300);
+            }
+          });
         }
+      } else if (urls.length === 0) {
+
+        setUrls([{ id: uuidv4(), url: "", isLoading: false, isValid: false }]);
       }
-    } catch {}
+    } catch {
+
+      if (urls.length === 0) {
+        setUrls([{ id: uuidv4(), url: "", isLoading: false, isValid: false }]);
+      }
+    }
   }, []);
   const [playlistUrl, setPlaylistUrl] = useState("")
   const [playlistInfo, setPlaylistInfo] = useState<PlaylistInfo | null>(null)
@@ -179,8 +221,7 @@ export default function YouTubeConverter() {
     setPlaylistInfo(null)
 
     try {
-      const endpoint = conversionType === "audio" ? "audio" : "video"
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}/playlist`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/playlist`, {
         method: "POST",
         body: JSON.stringify({ url: playlistUrl }),
         headers: {
@@ -285,27 +326,184 @@ export default function YouTubeConverter() {
   }
 
   const addNewUrl = () => {
-    const newURL: URL = { url: "", id: uuidv4() }
-    setUrls((prevUrls) => [...prevUrls, newURL])
+    const newUrl = { id: uuidv4(), url: "" }
+    setUrls((prevUrls) => [...prevUrls, newUrl])
+    saveUrlsToStorage([...urls, newUrl])
   }
 
   const removeUrl = (id: string) => {
-    if (urls.length > 1) {
-      setUrls((prevUrls) => prevUrls.filter((url) => url.id !== id))
-    }
+    const newUrls = urls.filter((url) => url.id !== id)
+    setUrls(newUrls)
+    saveUrlsToStorage(newUrls)
   }
 
+
+  const urlTimersRef = useRef<{[key: string]: NodeJS.Timeout}>({});
+  
+
+  const DEBOUNCE_TIME = 1500;
+  
   const handleUrlChange = (id: string, value: string) => {
-    setUrls((prevUrls) => prevUrls.map((url) => (url.id === id ? { ...url, url: value } : url)))
+
+    if (urlTimersRef.current[id]) {
+      clearTimeout(urlTimersRef.current[id]);
+    }
+    
+    const hasValidFormat = isValidUrl(value);
+    
+
+    setUrls((prevUrls) =>
+      prevUrls.map((prevUrl) => {
+        if (prevUrl.id === id) {
+
+          if (!value.trim() || !hasValidFormat) {
+            return { ...prevUrl, url: value, isLoading: false, isValid: false, info: undefined };
+          } else {
+
+            return { ...prevUrl, url: value };
+          }
+        }
+        return prevUrl;
+      })
+    );
+    
+
+    saveUrlsToStorage();
+    
+
+    if (hasValidFormat) {
+
+      setTimeout(() => {
+
+        if (urlTimersRef.current[id]) {
+          setUrls((prevUrls) =>
+            prevUrls.map((prevUrl) =>
+              prevUrl.id === id ? { ...prevUrl, isLoading: true } : prevUrl
+            )
+          );
+        }
+      }, 300);
+
+
+      urlTimersRef.current[id] = setTimeout(() => {
+        fetchVideoInfo(id, value);
+        delete urlTimersRef.current[id];
+      }, DEBOUNCE_TIME);
+    }
+  }
+  
+  const isValidUrl = (url: string): boolean => {
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be|music\.youtube\.com)\/.+/
+    return youtubeRegex.test(url.trim())
   }
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("setube_urls", JSON.stringify(urls));
-      } catch {}
+  const fetchVideoInfo = async (id: string, url: string) => {
+    if (!url.trim() || !isValidUrl(url)) return
+    
+    try {
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/video/info`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ urls: [url] })
+      })
+
+
+      if (!response.ok) {
+
+        let errorMessage = `Error del servidor: ${response.status}`;
+        try {
+          const errorData = await response.json();
+
+          if (errorData && errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+  
+          errorMessage = "Error al obtener info del video";
+        }
+        
+        console.error(`Error al obtener info del video (${url}):`, errorMessage);
+        
+
+        setUrls((prevUrls) =>
+          prevUrls.map((prevUrl) =>
+            prevUrl.id === id ? { 
+              ...prevUrl, 
+              isLoading: false, 
+              info: undefined,
+              isValid: false
+            } : prevUrl
+          )
+        );
+        
+
+        setError(`No se pudo obtener información del video. ${errorMessage}`)
+        
+
+        return;
+      }
+
+
+      const data = await response.json();
+      console.log("Video info data:", data);
+      
+
+      if (data.urls && data.urls.length > 0) {
+        setUrls((prevUrls) =>
+          prevUrls.map((prevUrl) =>
+            prevUrl.id === id
+              ? { ...prevUrl, info: data.urls[0], isLoading: false, isValid: true }
+              : prevUrl
+          )
+        );
+
+        saveUrlsToStorage();
+        console.log("Updated URL with info:", id, data.urls[0].title);
+      } else {
+        console.log("No video info returned for URL despite OK response:", url);
+        setUrls((prevUrls) =>
+          prevUrls.map((prevUrl) =>
+            prevUrl.id === id ? { 
+              ...prevUrl, 
+              isLoading: false, 
+              info: undefined,
+              isValid: false
+            } : prevUrl
+          )
+        );
+
+        setError(`No se encontró información para el video. Verifica que la URL sea correcta.`);
+      }
+    } catch (error) {
+      console.error("Error fetching video info:", error);
+      setUrls((prevUrls) =>
+        prevUrls.map((prevUrl) =>
+          prevUrl.id === id ? { 
+            ...prevUrl, 
+            isLoading: false, 
+            info: undefined,
+            isValid: false
+          } : prevUrl
+        )
+      );
+
+      setError("Hubo un problema al obtener la información del video. Inténtalo de nuevo más tarde.");
     }
-  }, [urls]);
+  }
+
+  const saveUrlsToStorage = (urlsToSave = urls) => {
+    try {
+
+      const urlsToStore = urlsToSave.map(url => ({
+        id: url.id,
+        url: url.url
+      }));
+      localStorage.setItem("setube_urls", JSON.stringify(urlsToStore));
+    } catch {}
+  }
 
   const handleCloseProgress = () => {
     setShowProgress(false)
@@ -315,7 +513,8 @@ export default function YouTubeConverter() {
     }
   }
 
-  const validUrls = urls.filter((url) => url.url.trim()).length
+
+  const validUrls = urls.filter((url) => isValidUrl(url.url) && url.isValid && url.info).length
   const isPlaylistValid = playlistUrl.trim().length > 0
   const canConvert = mode === "urls" ? validUrls > 0 : playlistInfo && playlistInfo.urls.length > 0
 
@@ -442,34 +641,68 @@ export default function YouTubeConverter() {
                     </div>
 
                     <div className="space-y-2 sm:space-y-3">
-                      {urls.map((url, index) => (
+                       {urls.map((url, index) => (
                         <div
                           key={url.id}
-                          className="flex gap-2 sm:gap-3 animate-in fade-in slide-in-from-left duration-500"
+                          className="animate-in fade-in slide-in-from-left duration-500 space-y-2"
                           style={{ animationDelay: `${index * 100}ms` }}
                         >
-                          <div className="flex-1 relative">
-                            <Input
-                              type="url"
-                              placeholder="https://www.youtube.com/watch?v=..."
-                              value={url.url}
-                              onChange={(e) => handleUrlChange(url.id, e.target.value)}
-                              className="pr-8 sm:pr-10"
-                            />
-                            {url.url.trim() && (
-                              <CheckCircle className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
+                          <div className="flex gap-2 sm:gap-3">
+                            <div className="flex-1 relative">
+                              <Input
+                                type="url"
+                                placeholder="https://www.youtube.com/watch?v=..."
+                                value={url.url}
+                                onChange={(e) => handleUrlChange(url.id, e.target.value)}
+                                className="pr-8 sm:pr-10"
+                              />
+                              {url.url.trim() && !url.isLoading && url.isValid && url.info && (
+                                <CheckCircle className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
+                              )}
+                              {url.isLoading && (
+                                <Loader2 className="animate-spin absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
+                              )}
+                            </div>
+                            {urls.length > 1 && (
+                              <Button
+                                onClick={() => removeUrl(url.id)}
+                                variant="danger"
+                                size="md"
+                                className="px-2 sm:px-3"
+                              >
+                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span className="hidden xs:inline">Borrar</span>
+                              </Button>
                             )}
                           </div>
-                          {urls.length > 1 && (
-                            <Button
-                              onClick={() => removeUrl(url.id)}
-                              variant="danger"
-                              size="md"
-                              className="px-2 sm:px-3"
-                            >
-                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                              <span className="hidden xs:inline">Borrar</span>
-                            </Button>
+                          
+                          {url.isValid && url.url.trim() && url.info && (
+                            <div className="bg-slate-50 rounded-lg p-2 sm:p-3 border border-slate-200 shadow-sm">
+                              <div className="flex flex-col md:flex-row gap-3">
+                                <div className="relative w-full md:w-1/3 aspect-video rounded-md overflow-hidden">
+                                  <Image 
+                                    src={url.info.thumbnail.url} 
+                                    alt={url.info.title}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                  <div className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 rounded-tl">
+                                    {url.info.qualities[0]}
+                                  </div>
+                                </div>
+                                <div className="flex-1 space-y-1 overflow-hidden">
+                                  <h4 className="font-medium text-sm sm:text-base text-slate-900 truncate">{url.info.title}</h4>
+                                  <p className="text-xs sm:text-sm text-slate-700 line-clamp-2">{url.info.description}</p>
+                                  <div className="flex flex-wrap gap-1 pt-1">
+                                    {url.info.qualities.map((quality, i) => (
+                                      <span key={i} className="text-xs bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">
+                                        {quality}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           )}
                         </div>
                       ))}
@@ -503,47 +736,40 @@ export default function YouTubeConverter() {
 
                     {playlistInfo && (
                       <div className="animate-in fade-in slide-in-from-bottom duration-500">
-                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-3 sm:p-4 rounded-xl border border-purple-100">
-                          <div className="flex flex-col items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                            <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
-                              <Image
-                                src={playlistInfo.info.thumbnail.url}
-                                width={playlistInfo.info.thumbnail.width}
-                                height={playlistInfo.info.thumbnail.height}
-                                alt="Miniatura de playlist de YouTube para convertir a MP3 con Setube, el mejor convertidor de YouTube a audio"
-                                className="rounded-lg"
+                        <div className="bg-slate-50 rounded-lg p-2 sm:p-3 border border-slate-200 shadow-sm">
+                          <div className="flex flex-col md:flex-row gap-3">
+                            <div className="relative w-full md:w-1/3 aspect-video rounded-md overflow-hidden">
+                              <Image 
+                                src={playlistInfo.info.thumbnail.url} 
+                                alt={playlistInfo.info.title}
+                                fill
+                                className="object-cover"
                               />
-                            </div>
-                            <div className="text-center">
-                              <p className="text-xs sm:text-sm font-medium text-slate-700">Playlist Detectada</p>
-                              <p className="text-sm text-slate-600 font-bold">{playlistInfo.info.title}</p>
-                              <p className="text-xs text-slate-500 mt-1">{playlistInfo.info.description}</p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between bg-white/50 rounded-lg p-2 sm:p-3">
-                              <div className="flex items-center gap-1 sm:gap-2">
-                                <Music className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
-                                <span className="text-xs sm:text-sm font-medium text-slate-700">Total de videos:</span>
+                              <div className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 rounded-tl">
+                                {playlistInfo.total} videos
                               </div>
-                              <div className="flex items-center gap-1 sm:gap-2">
-                                <span className="text-base sm:text-lg font-bold text-purple-600">
-                                  {playlistInfo.total}
+                            </div>
+                            <div className="flex-1 space-y-1 overflow-hidden">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-medium text-sm sm:text-base text-slate-900 truncate flex-1">{playlistInfo.info.title}</h4>
+                                <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded whitespace-nowrap">
+                                  Playlist
                                 </span>
-                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-purple-500 rounded-full animate-pulse"></div>
                               </div>
-                            </div>
-
-                            <div className="flex items-center justify-between bg-white/50 rounded-lg p-2 sm:p-3">
-                              <div className="flex items-center gap-1 sm:gap-2">
-                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
-                                <span className="text-xs sm:text-sm font-medium text-slate-700">Reproducciones:</span>
-                              </div>
-                              <div className="flex items-center gap-1 sm:gap-2">
-                                <span className="text-base sm:text-lg font-bold text-purple-600">
-                                  {new Intl.NumberFormat('es-ES').format(playlistInfo.info.views)}
-                                </span>
+                              <p className="text-xs sm:text-sm text-slate-700 line-clamp-2">{playlistInfo.info.description}</p>
+                              <div className="flex flex-wrap gap-3 pt-2">
+                                <div className="flex items-center gap-1">
+                                  <Music className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
+                                  <span className="text-xs sm:text-sm text-slate-700">
+                                    {playlistInfo.total} videos
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
+                                  <span className="text-xs sm:text-sm text-slate-700">
+                                    {new Intl.NumberFormat('es-ES').format(playlistInfo.info.views)} vistas
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -552,9 +778,9 @@ export default function YouTubeConverter() {
                     )}
 
                     {isLoadingPlaylist && (
-                      <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-slate-600 bg-slate-50 px-3 py-3 sm:py-4 rounded-lg animate-pulse">
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 bg-slate-50 px-3 py-3 sm:py-4 rounded-lg border border-slate-200 shadow-sm animate-pulse">
                         <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                        Obteniendo información de la playlist...
+                        <span>Obteniendo información de la playlist...</span>
                       </div>
                     )}
                   </div>
