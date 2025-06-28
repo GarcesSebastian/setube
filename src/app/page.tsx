@@ -507,9 +507,19 @@ export default function YouTubeConverter() {
 
   const handleCloseProgress = () => {
     setShowProgress(false)
-    closeEventSource()
-    if (isConverting) {
+    if (!isConverting) {
+      closeEventSource()
+    }
+  }
+  
+  const handleCancelConversion = () => {
+    if (window.confirm('¿Estás seguro que deseas cancelar la conversión de la playlist?')) {
+      setShowProgress(false)
       setIsConverting(false)
+      closeEventSource()
+      setConvertedFiles([])
+      setConvertedCount(0)
+      setError('La conversión de la playlist ha sido cancelada')
     }
   }
 
@@ -528,6 +538,7 @@ export default function YouTubeConverter() {
           totalFiles={totalFilesToConvert}
           convertedFiles={convertedFiles}
           onClose={handleCloseProgress}
+          onCancel={handleCancelConversion}
           isCompleted={isConversionCompleted}
           playlistInfo={playlistInfo?.info}
         />
